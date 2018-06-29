@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>图书管理</title>
+    <link rel="stylesheet" href="/css/layui.css">
+    <link rel="stylesheet" href="/css/modules/layer/default/layer.css">
+
+    <style>
+        .layui-table-cell{
+            height: 42px;
+            line-height: 42px;
+        }
+        .layui-table, .layui-table-view {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        .layui-table-view select[lay-ignore] {
+            display: none;
+        }
+        .layui-layer-btn-c {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .layui-layer-btn a{
+            width: 100px;
+            text-align: center;
+        }
+
+        .layui-input:hover, .layui-textarea:hover {
+            border-color: #5534ff !important;
+        }
+
+    </style>
+
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header" lay-filter="bar">
+        <div class="layui-logo">图书管理</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="/admin/list">图书管理</a></li>
+            <li class="layui-nav-item"><a href="/admin/userborrow">借阅管理</a></li>
+
+            <li class="layui-nav-item">
+                <a href="javascript:;">信息管理</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/root/adminmsglist">管理员信息管理</a></dd>
+                    <dd><a href="/root/adminusermsglist">用户信息管理</a></dd>
+                </dl>
+            </li>
+
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a href="/exit">退出</a></li>
+        </ul>
+    </div>
+
+    <!-- 主显示区 -->
+
+    <div class="demoTable" style="margin-top: 20px; margin-left: 200px">
+        搜索用户：
+        <div class="layui-inline">
+            <input class="layui-input" name="username" id="userselect" autocomplete="off">
+        </div>
+        <button class="layui-btn layui-btn-normal" data-type="reload">搜索</button>
+        <a style="margin-left: 140px">当修改完一行数据后，请点击修改行的保存按钮！</a>
+    </div>
+
+    <table class="layui-table" lay-data="{url:'/root/userlist', page:true, id:'userlist'}" lay-filter="userlist">
+        <thead>
+        <tr>
+            <th lay-data="{field:'userid', sort: true, fixed: true}">ID</th>
+            <th lay-data="{field:'username' }">用户名</th>
+            <th lay-data="{field:'password', event: 'setPassword', style:'cursor: pointer;' }">密码</th>
+            <th lay-data="{field:'sex', edit: 'text' }">性别</th>
+            <th lay-data="{field:'phone', edit: 'text'}">手机号</th>
+
+            <th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}">操作</th>
+        </tr>
+        </thead>
+    </table>
+
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-radius layui-btn-normal" style="margin-top: 2px" lay-event="save">保存</a>
+        <a class="layui-btn layui-btn-radius layui-btn-danger" style="margin-top: 2px" lay-event="delete">删除</a>
+    </script>
+
+    <div class="layui-footer" style="left: 0;text-align: center">
+        <!-- 底部固定区域 -->
+        © com.yang.homeworkLibrary
+    </div>
+</div>
+<script src="/js/layui.js"></script>
+<script src="/js/login/jquery-3.2.1.min.js"></script>
+
+<script>
+    layui.use(['table', 'layer', 'form', 'element'], function(){
+        var table = layui.table;
+        var layer = layui.layer;
+        var form = layui.form;
+        var element = layui.element;
+
+        //监听工具条
+        table.on('tool(userlist)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'save'){
+                $.ajax({
+                    url:'/root/updatausermsg',
+                    data:{'userid':data.userid, 'username':data.username, 'sex':data.sex, 'phone':data.phone},
+                    type:'post',
+                    dataType:'text',
+                    async:false,
+                    success:function (res) {
+                        //处理返回数据
+                        var jsondata = $.parseJSON(res);
+                        var js_statuscode = jsondata.statuscode;
+                        var js_status = jsondata.status;
+                        switch (js_statuscode){
+                            case '700000':
+                                layer.open({
+                                    title: '提示'
+                                    ,content: js_status
+                                    ,btnAlign:'c'
+                                    ,yes:function () {
+                                        window.location.reload();
+                                    }
+                                });
+                                break;
+                            case '700001':
+                                layer.open({
+                                    title: '提示'
+                                    ,content: js_status
+                                    ,btnAlign:'c'
+                                });
+                                break;
+                        }
+                    }
+                });
+            }
+            if (obj.event === 'delete'){
+                layer.open({
+                    title:'提示',
+                    btn:["确定", "取消"],
+                    content:'确定删除该用户信息么',
+                    btnAlign:'c',
+                    yes:function () {
+                        obj.del();
+                        $.ajax({
+                            url:'/root/deleteusermsg',
+                            data:{'userid':data.userid},
+                            type:'post',
+                            dataType:'text',
+                            async:true,
+                            success:function () {
+                                layer.closeAll();
+                            }
+                        });
+                    }
+                });
+            }
+            if (obj.event === 'setPassword') {
+                layer.prompt({
+                        formType: 1,
+                        title: '修改用户名为 [ '+ data.username +' ] 的密码'
+                    },
+                    function (value, index) {
+
+                        $.ajax({
+                            url:'/root/setuserpassword',
+                            data:{'userid':data.userid, 'username':data.username, 'password':value},
+                            type:'post',
+                            dataType:'text',
+                            async:false,
+                            success:function (val) {
+                                layer.close(index);
+                                window.location.reload();
+                            }
+                        });
+                    });
+            }
+        });
+
+        /**
+         * 执行重载
+         */
+        var $ = layui.$, active = {
+
+            reload: function () {
+                var userSelect = $('#userselect');
+
+                table.reload('userlist',{
+                    url:'/root/usersearch',
+                    where:{
+                        username: userSelect.val()
+                    }
+                });
+            }
+
+        };
+
+        element.on('tab(bar)', function (data) {
+           console.log(data);
+        });
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>
+
+
+</body>
+</html>

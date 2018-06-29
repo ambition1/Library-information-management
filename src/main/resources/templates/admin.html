@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>图书管理</title>
+    <link rel="stylesheet" href="/css/layui.css">
+    <link rel="stylesheet" href="/css/modules/layer/default/layer.css">
+
+    <style>
+        .layui-table-cell{
+            height: 42px;
+            line-height: 42px;
+        }
+        .layui-table, .layui-table-view {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        .layui-table-view select[lay-ignore] {
+            display: none;
+        }
+        .layui-layer-btn-c {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .layui-layer-btn a{
+            width: 100px;
+        }
+
+        .layui-input:hover, .layui-textarea:hover {
+            border-color: #5534ff !important;
+        }
+
+    </style>
+
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">图书管理</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="/admin/list">图书管理</a></li>
+            <li class="layui-nav-item"><a href="/admin/userborrow">借阅管理</a></li>
+
+            <li class="layui-nav-item">
+                <a href="javascript:;">信息管理</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/root/adminmsglist">管理员信息管理</a></dd>
+                    <dd><a href="/root/adminusermsglist">用户信息管理</a></dd>
+                </dl>
+            </li>
+
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a href="/exit">退出</a></li>
+        </ul>
+    </div>
+
+    <!-- 主显示区 -->
+
+    <div class="demoTable" style="margin-top: 20px; margin-left: 200px">
+        搜索书名：
+        <div class="layui-inline">
+            <input class="layui-input" name="bookname" id="bookselect" autocomplete="off">
+        </div>
+        <button class="layui-btn layui-btn-normal" data-type="reload">搜索</button>
+        <button class="layui-btn layui-btn-normal" id="add">添加图书</button>
+        <a style="margin-left: 140px">当修改完一行数据后，请点击修改行的保存按钮！</a>
+
+    </div>
+
+    <table class="layui-table" lay-data="{url:'/client/list', page:true, id:'booklist'}" lay-filter="booklist">
+        <thead>
+        <tr>
+            <th lay-data="{field:'bookid', sort: true, fixed: true}">ID</th>
+            <th lay-data="{field:'bookname' , edit: 'text' }">书名</th>
+            <th lay-data="{field:'bookauthor', edit: 'text' }">作者</th>
+            <th lay-data="{field:'bookpublisher', edit: 'text' }">出版商</th>
+            <th lay-data="{field:'bookprice', sort:true, edit: 'text'}">价格(元/本)</th>
+            <th lay-data="{field:'bookcategory', sort:true, edit: 'text'}">类别</th>
+            <th lay-data="{field:'booksurplus', sort: true, edit: 'text'}">剩余数量(本)</th>
+            <th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}">操作</th>
+        </tr>
+        </thead>
+    </table>
+
+
+    <div class="layui-row" id="addBookList" style="display: none;">
+        <div class="layui-col-md10">
+            <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px; margin-left: 55px">
+                <legend>添加图书信息</legend>
+            </fieldset>
+            <form class="layui-form" action="" id="addbook">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">书名</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="bookname" lay-verify="bookname" autocomplete="off" placeholder="请输入" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">作者</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="bookauthor" lay-verify="bookauthor" autocomplete="off" placeholder="请输入" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">出版商</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="bookpublisher" lay-verify="bookpublisher" autocomplete="off" placeholder="请输入" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">价格</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="bookprice" lay-verify="bookprice" autocomplete="off" placeholder="请输入" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">分类</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="bookcategory" lay-verify="bookcategory" autocomplete="off" placeholder="请输入" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">数量</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="booksurplus" lay-verify="booksurplus" autocomplete="off" placeholder="请输入" class="layui-input">
+                    </div>
+                </div>
+                <button lay-submit lay-filter="edit"  style="display: none;"></button>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-radius layui-btn-normal"  lay-event="save">保存</a>
+        <a class="layui-btn layui-btn-radius layui-btn-danger"  lay-event="delete">删除</a>
+    </script>
+
+    <div class="layui-footer" style="left: 0;text-align: center">
+        <!-- 底部固定区域 -->
+        © com.yang.homeworkLibrary
+    </div>
+</div>
+<script src="/js/layui.js"></script>
+<script src="/js/login/jquery-3.2.1.min.js"></script>
+
+<script>
+    layui.use(['table', 'layer', 'form', 'element'], function(){
+        var table = layui.table;
+        var layer = layui.layer;
+        var form = layui.form;
+        var element = layui.element;
+
+        //监听工具条
+        table.on('tool(booklist)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'save'){
+                $.ajax({
+                    url:'/admin/update',
+                    data:{'bookid':data.bookid, 'bookname':data.bookname, 'bookauthor':data.bookauthor, 'bookpublisher':data.bookpublisher,
+                          'bookprice':data.bookprice, 'bookcategory':data.bookcategory,'booksurplus':data.booksurplus},
+                    type:'post',
+                    dataType:'text',
+                    async:false,
+                    success:function (res) {
+                        //处理返回数据
+                        var jsondata = $.parseJSON(res);
+                        var js_statuscode = jsondata.statuscode;
+                        var js_status = jsondata.status;
+                        switch (js_statuscode){
+                            case '700000':
+                                layer.open({
+                                    title: '提示'
+                                    ,content: js_status
+                                    ,btnAlign:'c'
+                                    ,yes:function () {
+                                        window.location.reload();
+                                    }
+                                });
+                                break;
+                            case '700001':
+                                layer.open({
+                                    title: '提示'
+                                    ,content: js_status
+                                    ,btnAlign:'c'
+                                });
+                                break;
+                            case '700002':
+                                layer.open({
+                                    title: '提示',
+                                    content: js_status,
+                                    btnAlign: 'c'
+                                });
+                                break;
+                        }
+                    }
+                });
+            }
+            if (obj.event === 'delete'){
+                layer.open({
+                    title:'提示',
+                    btn:["确定", "取消"],
+                    content:'确定删除该图书记录么',
+                    btnAlign:'c',
+                    yes:function () {
+                        obj.del();
+                        $.ajax({
+                            url:'/admin/delete',
+                            data:{'bookid':data.bookid},
+                            type:'post',
+                            dataType:'text',
+                            async:true,
+                            success:function () {
+                                layer.closeAll();
+                            }
+                        });
+                    }
+                });
+            }
+
+        });
+
+        /**
+         * 执行重载
+         */
+        var $ = layui.$, active = {
+
+            reload: function () {
+                var bookSelect = $('#bookselect');
+
+                table.reload('booklist',{
+                    url:'/client/search',
+                    where:{
+                        bookname: bookSelect.val()
+                    }
+                });
+            }
+
+        };
+        /*点击添加按钮，弹出界面*/
+        $('#add').click(function () {
+            layer.open({
+                type:1,
+                title:'添加图书信息',
+                area:['50%'],
+                btn:['添加','取消'],
+                btnAlign:'c',
+                content:$('#addBookList'),
+                yes:function () {
+
+                    $('#addbook').find('button[lay-filter=edit]').click();
+
+                }
+            });
+            /*表单渲染*/
+            form.render();
+            form.verify({
+                bookname: function (val, item) {
+                    if (val.length === 0) {
+                        return '书名不能为空';
+                    }
+                },
+                bookauthor: function (val, item) {
+                    if (val.length === 0) {
+                        return '作者不能为空';
+                    }
+                },
+                bookpublisher: function (val, item) {
+                    if (val.length === 0) {
+                        return '出版商不能为空';
+                    }
+                },
+                bookprice: function (val, item) {
+                    if (val.length === 0) {
+                        return '价格不能为空';
+                    }
+                    if (!/^[0-9]*$/.test(val)){
+                        return '价格只能为数字';
+                    }
+                },
+                bookcategory: function (val, item) {
+                    if (val.length === 0) {
+                        return '类别不能为空';
+                    }
+                },
+                booksurplus: function (val, item) {
+                    if (val.length === 0) {
+                        return '书本数量不能为空';
+                    }
+                    if (!/^[0-9]*$/.test(val)){
+                        return '数量只能为数字';
+                    }
+                }
+            });
+
+            form.on('submit(edit)',function (data) {
+                $.ajax({
+                    url:'/admin/addbook',
+                    type: 'post',
+                    data: data.field,
+                    dataType: 'text',
+                    async:false,
+                    success:function (res) {
+                        //返回数据处理
+                        var jsondata = $.parseJSON(res);
+                        var statuscode_jsondata = jsondata.statuscode;
+                        var statu_jsondata = jsondata.status;
+                        switch (statuscode_jsondata){
+                            case '800000':
+                                window.location.reload();
+                                break;
+                            case '800001':
+                                layer.msg(statu_jsondata);
+                                break;
+                        }
+                    }
+                });
+
+                return false;
+            })
+
+        });
+
+        element.on('tab(bar)', function (data) {
+            console.log(data);
+        });
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+        
+    });
+</script>
+
+
+</body>
+</html>

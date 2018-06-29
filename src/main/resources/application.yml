@@ -1,0 +1,27 @@
+#基本配置设置
+server:
+  port: 80
+  servlet:
+    context-path: /
+
+#Spring系列设置
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://172.0.0.1:3306/library1?useUnicode=true&characterEncoding=UTF-8
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: mysql
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  thymeleaf:
+    mode: HTML5
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    check-template-location: true
+
+

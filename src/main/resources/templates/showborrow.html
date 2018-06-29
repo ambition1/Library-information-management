@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>图书管理</title>
+    <link rel="stylesheet" href="/css/layui.css">
+    <link rel="stylesheet" href="/css/modules/layer/default/layer.css">
+
+    <style>
+        .layui-table-cell{
+            height: 40px;
+            line-height: 40px;
+        }
+        .layui-table, .layui-table-view {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        .layui-table-view select[lay-ignore] {
+            display: none;
+        }
+
+    </style>
+
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">图书管理</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="/client/show">图书列表</a></li>
+            <li class="layui-nav-item"><a href="/client/showborrow">借阅管理</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a href="/exit">退出</a></li>
+        </ul>
+    </div>
+
+    <!-- 主显示区 -->
+
+    <table class="layui-table" lay-data="{url:'/client/borrowlist', page:true, id:'booklist'}" lay-filter="demo">
+        <thead>
+        <tr>
+            <th lay-data="{field:'id' }">ID</th>
+            <th lay-data="{field:'bookname' }">书名</th>
+            <th lay-data="{field:'loan' }">借出时间</th>
+            <th lay-data="{field:'back' }">归还时间</th>
+            <th lay-data="{field:'isrenew'}">是否可以续借</th>
+
+            <th lay-data="{fixed: 'right',width:200, align:'center', toolbar: '#barDemo'}">操作</th>
+
+        </tr>
+        </thead>
+    </table>
+
+    <script type="text/html" id="barDemo">
+        <a id="bottom" class="layui-btn layui-btn-radius layui-btn-primary" lay-event="detail">续期</a>
+    </script>
+
+    <div class="layui-footer" style="left: 0;text-align: center">
+        <!-- 底部固定区域 -->
+        © com.yang.homeworkLibrary
+    </div>
+</div>
+<script src="/js/layui.js"></script>
+<script src="/js/login/jquery-3.2.1.min.js"></script>
+
+<script>
+    layui.use(['table', 'layer'], function(){
+        var table = layui.table;
+        var layer = layui.layer;
+
+
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'detail'){
+                if (data.isrenew === '否'){
+                    layer.open({
+                        title: '提示'
+                        ,content: '您已续借，无法再次进行续借！'
+                        ,btnAlign:'c'
+                    });
+                }else {
+                    $.ajax({
+                        url: '/user/renew',
+                        data: {'id':data.id, 'back':data.back},
+                        type: 'post',
+                        dataType: 'text',
+                        async: false,
+                        success:function (res) {
+                            //处理返回数据
+                            var jsondata = $.parseJSON(res);
+                            var js_statuscode = jsondata.statuscode;
+                            var js_status = jsondata.status;
+                            switch (js_statuscode){
+                                case '600003':
+                                    layer.open({
+                                        title: '提示'
+                                        ,content: '您已续借，无法再次进行续借！'
+                                        ,btnAlign:'c'
+                                    });
+                                    break;
+                                case '600005':
+                                    layer.open({
+                                        title: '提示'
+                                        ,content: js_status
+                                        ,btnAlign:'c'
+                                        ,yes:function () {
+                                            window.location.reload();
+                                        }
+                                    });
+                                    break;
+                                case '600004':
+                                    layer.open({
+                                        title: '提示'
+                                        ,content: js_status
+                                        ,btnAlign:'c'
+                                    });
+                                    break;
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        /**
+         * 监听点击事件
+         */
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>
+
+
+</body>
+</html>

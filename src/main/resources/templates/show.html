@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>图书管理</title>
+    <link rel="stylesheet" href="/css/layui.css">
+    <link rel="stylesheet" href="/css/modules/layer/default/layer.css">
+
+    <style>
+        .layui-table-cell {
+            height: 40px;
+            line-height: 40px;
+        }
+
+        .layui-table, .layui-table-view {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+
+        .layui-table-view select[lay-ignore] {
+            display: none;
+        }
+
+    </style>
+
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">图书管理</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="/client/show">图书列表</a></li>
+            <li class="layui-nav-item"><a href="/client/showborrow">借阅管理</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a href="/exit">退出</a></li>
+        </ul>
+    </div>
+
+    <!-- 主显示区 -->
+
+    <div class="demoTable" style="margin-top: 20px; margin-left: 200px">
+        搜索书名：
+        <div class="layui-inline">
+            <input class="layui-input" name="bookname" id="bookselect" autocomplete="off">
+        </div>
+        <button class="layui-btn layui-btn-normal" data-type="reload">搜索</button>
+    </div>
+
+    <table class="layui-table" lay-data="{url:'/client/list', page:true, id:'booklist'}" lay-filter="demo">
+        <thead>
+        <tr>
+            <th lay-data="{field:'bookid', sort: true, fixed: true}">ID</th>
+            <th lay-data="{field:'bookname' }">书名</th>
+            <th lay-data="{field:'bookauthor' }">作者</th>
+            <th lay-data="{field:'bookpublisher' }">出版商</th>
+            <th lay-data="{field:'bookprice', sort:true}">价格(元/本)</th>
+            <th lay-data="{field:'bookcategory', sort:true}">类别</th>
+            <th lay-data="{field:'booksurplus', sort: true}">剩余数量(本)</th>
+            <th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}">操作</th>
+        </tr>
+        </thead>
+    </table>
+
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-radius layui-btn-primary" lay-event="detail">借阅</a>
+
+    </script>
+
+    <div class="layui-footer" style="left: 0;text-align: center">
+        <!-- 底部固定区域 -->
+        © com.yang.homeworkLibrary
+    </div>
+</div>
+<script src="/js/layui.js"></script>
+<script src="/js/login/jquery-3.2.1.min.js"></script>
+
+<script>
+    layui.use(['table', 'layer'], function () {
+        var table = layui.table;
+        var layer = layui.layer;
+
+        //监听工具条
+        table.on('tool(demo)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                if (data.booksurplus === 0) {
+                    layer.open({
+                        title: '提示'
+                        , content: '本书已借完！'
+                        , btnAlign: 'c'
+                    });
+                } else {
+                    $.ajax({
+                        url: '/user/borrow',
+                        data: {'bookid': data.bookid, 'bookname': data.bookname},
+                        type: 'post',
+                        dataType: 'text',
+                        async: false,
+                        success: function (res) {
+                            //处理返回数据
+                            var jsondata = $.parseJSON(res);
+                            var js_statuscode = jsondata.statuscode;
+                            var js_status = jsondata.status;
+                            switch (js_statuscode) {
+                                case '600000':
+                                    layer.open({
+                                        title: '提示'
+                                        , content: js_status
+                                        , btnAlign: 'c'
+                                        , yes: function () {
+                                            window.location.reload();
+                                        }
+                                    });
+                                    break;
+                                case '600001':
+                                    layer.msg(js_status);
+                                    break;
+                                default:
+                                    layer.msg("请重试！");
+                                    break;
+                            }
+                        }
+
+                    });
+                }
+
+
+            }
+
+        });
+
+        /**
+         * 执行重载
+         */
+        var $ = layui.$, active = {
+
+            reload: function () {
+                var bookSelect = $('#bookselect');
+
+                table.reload('booklist', {
+                    url: '/client/search',
+                    where: {
+                        bookname: bookSelect.val()
+                    }
+                });
+            }
+
+        };
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>
+
+
+</body>
+</html>
